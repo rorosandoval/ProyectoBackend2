@@ -1,0 +1,20 @@
+<div class="contenedor-principal">
+    <h1>¡Bienvenido(a), {{user.first_name}}!</h1>
+    
+    <div class="informacion-usuario">
+        <h4>Datos del Usuario</h4>
+        <p><strong>Nombre:</strong> {{user.first_name}} {{user.last_name}}</p>
+        <p><strong>Correo:</strong> {{user.email}}</p>
+        <p><strong>Edad:</strong> {{user.age}} años</p>
+        <p>
+            <strong>Rol:</strong> 
+            <span class="etiqueta-rol {{#if (eq user.role 'admin')}}administrador{{/if}}">
+                {{user.role}}
+            </span>
+        </p>
+    </div>
+
+    <form action="/api/sessions/logout" method="POST" class="formulario-cerrar-sesion">
+        <button type="submit">Cerrar sesión</button>
+    </form>
+</div>

@@ -1,0 +1,17 @@
+<div class="contenedor-tarjeta">
+    <h1>Iniciar sesión</h1>
+
+    {{#if error}}
+        <div class="mensaje-error">{{error}}</div>
+    {{/if}}
+
+    <form id="loginForm">
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
+</div>
+
+<script src="/js/login.js"></script>
