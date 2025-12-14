@@ -1,8 +1,8 @@
 import passport from "passport";
 import local from "passport-local";
 import jwt from "passport-jwt";
-import userModel from "../models/userModel.js";
-import { createHash, isValidPassword } from "../utils.js";
+import { isValidPassword } from "../utils/hash.utils.js";
+import { userRepository } from '../repositories/user.repository.js';
 
 const LocalStrategy = local.Strategy;
 const JWTStrategy = jwt.Strategy;
@@ -15,13 +15,13 @@ const initializePassport = () => {
             passReqToCallback: true,
             usernameField: 'email',
             passwordField: 'password',
-            session: false 
+            session: false
         },
         async (req, username, password, done) => {
             const { first_name, last_name, age } = req.body;
             
             try {
-                const user = await userModel.findOne({ email: username });
+                const user = await userRepository.findByEmail(username);
                 
                 if (user) {
                     console.log('El usuario ya existe');
@@ -33,10 +33,10 @@ const initializePassport = () => {
                     last_name,
                     email: username,
                     age,
-                    password: createHash(password)
+                    password: password
                 };
                 
-                const result = await userModel.create(newUser);
+                const result = await userRepository.registerUser(newUser); 
                 return done(null, result);
                 
             } catch (error) {
@@ -50,11 +50,11 @@ const initializePassport = () => {
         {
             usernameField: 'email',
             passwordField: 'password',
-            session: false 
+            session: false
         },
         async (username, password, done) => {
             try {
-                const user = await userModel.findOne({ email: username });
+                const user = await userRepository.findByEmail(username);
                 
                 if (!user) {
                     console.log('Usuario no encontrado');
@@ -66,7 +66,7 @@ const initializePassport = () => {
                     return done(null, false, { message: 'Contraseña incorrecta' });
                 }
                 
-                return done(null, user);
+                return done(null, user); 
                 
             } catch (error) {
                 return done(error);
@@ -77,11 +77,11 @@ const initializePassport = () => {
     passport.use('jwt', new JWTStrategy(
         {
             jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
-            secretOrKey: 'coderSecret'
+            secretOrKey: process.env.JWT_SECRET
         },
         async (jwt_payload, done) => {
             try {
-                return done(null, jwt_payload);
+                return done(null, jwt_payload.user);
             } catch (error) {
                 return done(error);
             }
@@ -91,11 +91,11 @@ const initializePassport = () => {
     passport.use('current', new JWTStrategy(
         {
             jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
-            secretOrKey: 'coderSecret'
+            secretOrKey: process.env.JWT_SECRET
         },
         async (jwt_payload, done) => {
             try {
-                const user = await userModel.findById(jwt_payload.user._id);
+                const user = await userRepository.findById(jwt_payload.user._id);
                 
                 if (!user) {
                     return done(null, false);
@@ -112,7 +112,7 @@ const initializePassport = () => {
 const cookieExtractor = (req) => {
     let token = null;
     if (req && req.cookies) {
-        token = req.cookies['coderCookieToken'];
+        token = req.cookies['coderCookieToken']; 
     }
     return token;
 };
